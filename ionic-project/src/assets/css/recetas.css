@@ -1,0 +1,191 @@
+/* ==========================
+   PAGINA RECETAS
+========================== */
+.recetas {
+  max-width: 1200px;
+  margin: 4rem auto;
+  padding: 0 2rem;
+  text-align: center;
+}
+
+.recetas__title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 2rem;
+}
+
+/* ==========================
+   BARRA DE BUSQUEDA
+========================== */
+.recetas__searchbar {
+  width: 100%;
+  max-width: 450px;
+  padding: 1rem;
+  font-size: 1rem;
+  margin-bottom: 3rem;
+  border: 2px solid #e9f5ec;
+  border-radius: var(--border-radius);
+  background-color: #f9fdfa;
+  transition: var(--transition);
+}
+
+.recetas__searchbar:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+  background-color: white;
+}
+
+/* ==========================
+   LISTA DE RECETAS
+========================== */
+.recipe-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 3rem;
+}
+
+/* ==========================
+   TARJETAS DE RECETAS (MEJORADO)
+========================== */
+.recipe-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Tarjetas un poco más grandes */
+  gap: 2.5rem; /* Aumento de espacio */
+  list-style: none;
+  padding: 0;
+  margin-bottom: 3rem;
+}
+
+.recipe-card {
+  /* Eliminamos width: 100% y max-width: 380px para que el grid lo gestione */
+  background: #ffffff;
+  border-radius: 12px; /* Ligeramente más suaves */
+  overflow: hidden;
+  padding: 0; /* Eliminamos el padding principal */
+  border: none; /* Quitamos el borde para un look más limpio */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* Sombra más profunda y suave */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin: 0; /* Eliminamos el margin: 20px auto; */
+  position: relative;
+  text-align: left; /* Alineación del contenido */
+  display: flex; /* Para asegurar el orden del contenido */
+  flex-direction: column;
+}
+
+.recipe-card:hover {
+  transform: translateY(-8px); /* Elevación más notable */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  border-color: transparent; /* Ya no hay borde */
+}
+
+.recipe-card__link {
+  text-decoration: none;
+  color: var(--text-dark);
+}
+
+.recipe-img {
+  width: 100%;
+  height: 250px; /* Imagen más alta para impacto */
+  object-fit: cover;
+  border-radius: 12px 12px 0 0; /* Bordes redondeados solo en la parte superior */
+  display: block;
+}
+
+.recipe-content {
+  padding: 25px; /* Más padding interno */
+  flex-grow: 1; /* Para que el contenido ocupe el espacio restante */
+  display: flex;
+  flex-direction: column;
+}
+
+.recipe-metadata {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.categoria {
+  /* Mantenemos el estilo de la categoría */
+  display: inline-block;
+  background: var(--primary-light); /* Usar variable para consistencia */
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 15px;
+  order: 2; /* Para que esté a la derecha */
+}
+
+.autor-fecha {
+  color: #757575;
+  font-size: 0.85rem;
+  margin: 0;
+  order: 1; /* Para que esté a la izquierda */
+}
+
+.autor-fecha strong {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.recipe-card__title,
+.recipe-card h2 {
+  font-size: 1.5rem;
+  font-weight: 800; /* Título más destacado */
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: var(--text-dark); /* Color más oscuro para mejor legibilidad */
+  line-height: 1.2;
+}
+
+.descripcion {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  /* Truncamiento de texto para mantener la uniformidad de la tarjeta */
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Mostrar solo 3 líneas de la descripción */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recipe-actions {
+  margin-top: auto; /* Empuja el botón hacia la parte inferior */
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.recipe-card__button {
+  display: block; /* Ocupa todo el ancho */
+  width: 100%;
+  padding: 0.75rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+  background: var(--primary-color);
+  color: white;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* Ocultar estilos no usados en la nueva tarjeta de lista */
+.fecha,
+.section-title,
+.recipe-content ul,
+.recipe-content ol {
+  display: none;
+}
+
+.search-clear{
+  display: none;
+}
