@@ -1,29 +1,59 @@
 <script setup lang="ts">
-    import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
-    import { IonItem, IonInput, IonButton, toastController } from '@ionic/vue';
-    import { ref } from 'vue';
-    import {login} from '@/backend/services/authService'
-    import {useRouter} from "vue-router"
+import { ref } from 'vue';
+import { useRouter } from "vue-router";
+import { useAppStore } from '@/stores/appStore';
+import {
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonItem,
+  IonInput,
+  IonButton,
+  toastController
+} from '@ionic/vue';
 
-    const router = useRouter()
-    const email = ref("")
-    const password = ref("")
-    async function handleLogin() {
-      try {
-        console.log("Datos", email.value, password.value)
-        await login(email.value, password.value)
-        router.push('/lista-compra')
-      }
-      catch {
-        const toast = await toastController.create({
-                message: "Email y/o contraseña incorrectos",
-                duration: 2000,
-                color: 'danger'
-                })
-            toast.present()
-      }
+// Importamos componentes opcionales si los usas en el template
+import SiteHeader from '@/components/SiteHeader.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
+
+const router = useRouter();
+const store = useAppStore();
+
+const email = ref("");
+const password = ref("");
+
+async function handleLogin() {
+  // 1. SOLUCIÓN AL ERROR ARIA (Pantalla bloqueada/gris)
+  // Quitamos el foco del botón antes de que Ionic intente cambiar de página
+  const activeElement = document.activeElement as HTMLElement;
+  if (activeElement && activeElement.blur) {
+    activeElement.blur();
+  }
+
+  try {
+    // 2. Usamos el store para hacer login (así se guardan los datos del usuario globalmente)
+    await store.login(email.value, password.value);
+
+    // 3. Redirección condicional usando 'replace' (para no poder volver atrás al login)
+    if (store.user?.admin) {
+      await router.replace('/admin');
+    } else {
+      await router.replace('/recetas'); // O '/home' según prefieras
     }
 
+  } catch (error) {
+    console.error("Error en login:", error);
+    const toast = await toastController.create({
+      message: "Email y/o contraseña incorrectos",
+      duration: 2000,
+      color: 'danger',
+      position: 'top' // Sale arriba para que se vea mejor
+    });
+    await toast.present();
+  }
+}
 </script>
 
 <template>
@@ -71,7 +101,7 @@
 <style scoped>
 #container {
   text-align: center;
-  
+
   position: absolute;
   left: 0;
   right: 0;
@@ -87,9 +117,9 @@
 #container p {
   font-size: 16px;
   line-height: 22px;
-  
+
   color: #8c8c8c;
-  
+
   margin: 0;
 }
 
