@@ -1,7 +1,7 @@
 import { pb } from '../config/pb.js';
 
 
-const login = async function(email, password) {
+const login = async (email: string, password: string) => {
   return await pb.collection("users").authWithPassword(email, password)
 }
 
