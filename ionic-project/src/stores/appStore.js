@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { pb } from '@/backend/config/pb'
+import { toastController } from '@ionic/vue'
+import { wifi } from 'ionicons/icons'
 
 export const useAppStore = defineStore('appStore', {
   state: () => ({
@@ -314,6 +316,55 @@ export const useAppStore = defineStore('appStore', {
         console.error("Error borrando receta:", err)
         this.error = "No se pudo borrar la receta"
       }
-    }
+    },
+    async subscribeToRealtime() {
+          console.log('conectando al canal Realtime -> Recetas...');
+
+          // Nos suscribimos a CUALQUIER cambio ('*') en la colección 'recetas'
+          pb.collection('recetas').subscribe('*', async (e) => {
+            console.log('Evento Realtime:', e.action, e.record);
+
+            // CASO 1: SE CREA UNA RECETA
+            if (e.action === 'create') {
+              // La añadimos al principio de la lista local
+              this.recetas.unshift(e.record);
+              this.presentToast('Nueva receta añadida en tiempo real', 'success');
+            }
+
+            // CASO 2: SE ACTUALIZA UNA RECETA
+            if (e.action === 'update') {
+              const index = this.recetas.findIndex(r => r.id === e.record.id);
+              if (index !== -1) {
+                // Actualizamos los datos manteniendo lo que ya teníamos (por si había expands)
+                this.recetas[index] = { ...this.recetas[index], ...e.record };
+                this.presentToast(`Receta "${e.record.titulo}" actualizada`, 'warning');
+              }
+            }
+
+            // CASO 3: SE BORRA UNA RECETA
+            if (e.action === 'delete') {
+              this.recetas = this.recetas.filter(r => r.id !== e.record.id);
+              this.presentToast('Una receta ha sido eliminada', 'danger');
+            }
+          });
+        },
+
+        // ✨ NUEVO: Dejar de escuchar (importante para no saturar)
+        unsubscribeFromRealtime() {
+          console.log('Desconectando Realtime...');
+          pb.collection('recetas').unsubscribe();
+        },
+
+        // ✨ NUEVO: Helper para mostrar notificaciones bonitas
+        async presentToast(message, color) {
+          const toast = await toastController.create({
+            message: message,
+            duration: 3000,
+            color: color,
+            position: 'top', // Arriba para que se vea bien en el video
+            icon: wifi
+          });
+          await toast.present();
+        }
   }
 })

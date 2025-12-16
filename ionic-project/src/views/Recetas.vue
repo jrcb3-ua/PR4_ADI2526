@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import {
   IonPage,
   IonContent,
@@ -9,28 +9,24 @@ import {
   IonCol,
   IonCard,
   IonCardHeader,
-  IonCardSubtitle,
   IonCardTitle,
   IonCardContent,
   IonButton,
   IonIcon,
   IonText,
-  IonBadge,
-  IonAvatar,
-  IonItem,
-  IonLabel
+  IonBadge
 } from '@ionic/vue'
-import { calendarOutline, personCircleOutline, arrowForward } from 'ionicons/icons'
+import { calendarOutline, personCircleOutline, arrowForward, searchOutline } from 'ionicons/icons'
 import { useAppStore } from '@/stores/appStore'
 
-// Importamos componentes globales
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 
 const app = useAppStore()
 const searchTerm = ref('')
 
-// Cargar recetas al montar
+// --- ✨ LÓGICA DE REALTIME ✨ ---
+
 onMounted(async () => {
   try {
     await app.loadRecetas()
@@ -39,7 +35,11 @@ onMounted(async () => {
   }
 })
 
-// Lógica de Autor (Idéntica a tu código original)
+onUnmounted(() => {
+  app.unsubscribeFromRealtime()
+})
+
+// Lógica de Autor
 function getAutorNombre(receta) {
   const autorId = Array.isArray(receta.autors) ? receta.autors[0] : receta.autors
 
@@ -57,6 +57,7 @@ function getAutorNombre(receta) {
   return "Anónimo"
 }
 
+// Lógica de filtrado
 const filteredRecetas = computed(() => {
   if (!searchTerm.value?.trim()) return app.recetas
 
@@ -82,9 +83,9 @@ const filteredRecetas = computed(() => {
 
         <ion-searchbar
           v-model="searchTerm"
-          animated="true"
+          :animated="true"
           placeholder="Buscar ingredientes, título..."
-          search-icon="search-outline"
+          :search-icon="searchOutline"
           show-clear-button="focus"
         ></ion-searchbar>
 
@@ -96,15 +97,19 @@ const filteredRecetas = computed(() => {
         </ion-text>
       </div>
 
-      <div v-if="filteredRecetas.length === 0" class="empty-state ion-text-center ion-padding">
-        <div v-if="searchTerm">
-          <h3>🤷‍♂️ Ups...</h3>
-          <p>No encontramos recetas para "{{ searchTerm }}"</p>
-        </div>
-        <div v-else>
-           <h3>⏳ Cargando...</h3>
-           <p>Si tarda mucho, verifica tu conexión.</p>
-        </div>
+      <div v-if="app.loading && !searchTerm" class="empty-state ion-text-center ion-padding">
+        <h3>⏳ Cargando recetas...</h3>
+        <p>Un momento, estamos conectando.</p>
+      </div>
+      <div v-else-if="filteredRecetas.length === 0" class="empty-state ion-text-center ion-padding">
+         <div v-if="searchTerm">
+            <h3>🤷‍♂️ Ups...</h3>
+            <p>No encontramos recetas para "{{ searchTerm }}"</p>
+         </div>
+         <div v-else>
+            <h3>¡No hay recetas!</h3>
+            <p>Sé el primero en crear una.</p>
+         </div>
       </div>
 
       <ion-grid v-else>
@@ -163,8 +168,6 @@ const filteredRecetas = computed(() => {
 </template>
 
 <style scoped>
-/* Estilos personalizados para ajustar Ionic */
-
 .page-title {
   font-weight: 800;
   font-size: 1.8rem;
@@ -211,7 +214,7 @@ const filteredRecetas = computed(() => {
   border-radius: 8px;
 }
 
-/* Metadatos (Autor y Fecha) */
+/* Metadatos */
 .meta-info {
   display: flex;
   align-items: center;
@@ -227,7 +230,7 @@ const filteredRecetas = computed(() => {
 /* Truncar descripción larga */
 .description-truncate {
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* Número de líneas antes de cortar */
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   color: var(--ion-color-medium);
