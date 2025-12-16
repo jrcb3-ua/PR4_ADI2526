@@ -1,0 +1,267 @@
+/* ==========================
+   PALETA Y BASE
+========================== */
+:root {
+  --primary: #52dd16;
+  --primary-light: #73e947;
+  --bg-light: #f7faf7;
+  --bg-white: #ffffff;
+  --text-dark: #333;
+  --text-muted: #666;
+  --border-radius: 14px;
+  --transition: 0.3s ease;
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Fondo general */
+.blog-main {
+  flex: 1;
+  padding: 3.5rem 2rem;
+  background: var(--bg-light);
+}
+
+/* Contenedor principal estilo tarjeta moderna */
+.receta-container {
+  max-width: 1050px;
+  margin: 0 auto 4rem auto;
+  background: var(--bg-white);
+  padding: 3rem 3rem 3.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+  transition: var(--transition);
+}
+
+.receta-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.13);
+}
+
+/* ==========================
+   HEADER DE LA RECETA
+========================== */
+.receta-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  align-items: flex-start;
+  margin-bottom: 2.5rem;
+}
+
+.receta-detalle__img {
+  width: 100%;
+  max-width: 380px;
+  height: 260px;
+  border-radius: var(--border-radius);
+  object-fit: cover;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+}
+
+.receta-header__text {
+  flex: 1;
+  min-width: 240px;
+}
+
+.receta-detalle__title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+
+/* Meta estilo vertical */
+.receta-meta {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;   /* 🔥 Cambia a diseño vertical */
+  gap: 0.4rem;              /* Espacio entre elementos */
+  align-items: flex-start;  /* Alineación a la izquierda */
+}
+
+.categoria {
+  background: var(--primary-light);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 16px;
+  margin-bottom: 0.3rem;
+}
+
+
+/* ==========================
+   DESCRIPCIÓN
+========================== */
+.receta-detalle__descripcion {
+  font-size: 1.15rem;
+  color: var(--text-dark);
+  margin-bottom: 2.5rem;
+  line-height: 1.7;
+}
+
+/* ==========================
+   INGREDIENTES Y PREPARACIÓN
+========================== */
+.receta-detalle__ingredients,
+.receta-detalle__preparation {
+  margin-bottom: 2.8rem;
+}
+
+.receta-detalle__ingredients h2,
+.receta-detalle__preparation h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+  border-bottom: 3px solid var(--primary);
+  display: inline-block;
+  padding-bottom: 0.3rem;
+}
+
+.receta-detalle__ingredients ul {
+  list-style: disc;
+  padding-left: 1.6rem;
+  font-size: 1.05rem;
+}
+
+.receta-detalle__ingredients li {
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================
+   LOADING
+========================== */
+.loading {
+  text-align: center;
+  font-size: 1.3rem;
+  padding: 4rem 0;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+
+/* ==========================
+   RESPONSIVE
+========================== */
+@media (max-width: 768px) {
+  .receta-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .receta-detalle__img {
+    width: 100%;
+    height: auto;
+  }
+
+  .receta-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .receta-detalle__title {
+    font-size: 2rem;
+  }
+}
+
+
+/* ==========================
+   COMENTARIOS
+========================== */
+.comentarios-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 3px solid var(--primary);
+}
+
+.comentarios-section h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.comentarios-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.comentario {
+  background: #f9fdfa;
+  border-radius: var(--border-radius);
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.comentario-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.comentario-autor {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.comentario-fecha {
+  color: var(--text-muted);
+}
+
+.comentario-texto {
+  font-size: 1rem;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.sin-comentarios {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+/* Formulario */
+.comentarios-form textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e9f5ec;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.comentarios-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(82, 221, 22, 0.12);
+}
+
+.btn-comentar {
+  background: var(--primary);
+  color: white;
+  padding: 0.8rem 1.3rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-comentar:hover:not(:disabled) {
+  background: var(--primary-light);
+  transform: translateY(-2px);
+}
+
+.btn-comentar:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+

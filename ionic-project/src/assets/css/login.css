@@ -1,0 +1,240 @@
+
+/* LOGIN - MEJORADO */
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 2rem;
+}
+
+.login-form {
+  max-width: 450px;
+  width: 100%;
+  padding: 3rem;
+  background: var(--bg-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+  border-top: 5px solid var(--primary-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: var(--gradient-primary);
+}
+
+.login-form__header {
+  margin-bottom: 2.5rem;
+}
+
+.login-form__icon {
+  width: 80px;
+  height: 80px;
+  background: var(--gradient-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: var(--primary-color);
+  font-size: 2rem;
+}
+
+.login-form__title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.login-form__subtitle {
+  font-size: 1rem;
+  color: var(--text-light);
+}
+
+.login-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  margin-bottom: 2rem;
+}
+
+.login-form__field {
+  position: relative;
+  text-align: left;
+}
+
+.login-form__field-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  transition: var(--transition);
+}
+
+.login-form input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e9f5ec;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  background-color: #f9fdfa;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+  background-color: white;
+  padding-left: 3.2rem;
+}
+
+.login-form input:focus + .login-form__field-icon {
+  color: var(--primary-color);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.login-form__options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.login-form__remember {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-medium);
+}
+
+.login-form__remember input {
+  width: auto;
+  margin: 0;
+}
+
+.login-form__forgot {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.login-form__forgot:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.login-form__button {
+  width: 100%;
+  padding: 1.2rem;
+  background: var(--primary-color);
+  color: white;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.login-form__button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.login-form__button:active {
+  transform: translateY(0);
+}
+
+.login-form__divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  color: var(--text-light);
+}
+
+.login-form__divider::before,
+.login-form__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e9f5ec;
+}
+
+.login-form__divider span {
+  padding: 0 1rem;
+  font-size: 0.9rem;
+}
+
+.login-form__social {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.login-form__social-button {
+  flex: 1;
+  padding: 0.8rem;
+  border: 2px solid #e9f5ec;
+  border-radius: var(--border-radius);
+  background: white;
+  color: var(--text-dark);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.login-form__social-button:hover {
+  border-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.login-form__social-button--google:hover {
+  border-color: #db4437;
+}
+
+.login-form__social-button--facebook:hover {
+  border-color: #4267B2;
+}
+
+.login-form__footer {
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: var(--text-medium);
+}
+
+.login-form__footer a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.login-form__footer a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
