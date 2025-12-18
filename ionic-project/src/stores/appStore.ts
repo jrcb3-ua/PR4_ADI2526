@@ -19,7 +19,10 @@ interface Comentario {
   id: string
   receta?: string
   contenido?: string
-  usuario?: string
+  user?: string // El ID del usuario
+  expand?: {
+    user?: User // El objeto del usuario expandido
+  }
   [key: string]: any
 }
 
@@ -223,7 +226,7 @@ export const useAppStore = defineStore('appStore', {
         this.error = null;
         const comentarios = await pb.collection('comentarios').getFullList({
           sort: '-created',
-          expand: 'usuario,receta'
+          expand: 'user,receta'
         });
         this.comentarios = comentarios as Comentario[];
         return this.comentarios;
@@ -242,7 +245,7 @@ export const useAppStore = defineStore('appStore', {
         const comentarios = await pb.collection('comentarios').getFullList({
           filter: `receta = "${recetaId}"`,
           sort: '-created',
-          expand: 'usuario'
+          expand: 'user'
         })
         // Actualizamos el estado local mezclando
         this.comentarios = [
@@ -269,7 +272,7 @@ export const useAppStore = defineStore('appStore', {
           user: this.user.id
         })
 
-        const comentarioExpandido = await pb.collection('comentarios').getOne(nuevo.id, { expand: 'usuario' })
+        const comentarioExpandido = await pb.collection('comentarios').getOne(nuevo.id, { expand: 'user' })
         this.comentarios.unshift(comentarioExpandido as Comentario)
         return comentarioExpandido as Comentario
       } catch (err) {

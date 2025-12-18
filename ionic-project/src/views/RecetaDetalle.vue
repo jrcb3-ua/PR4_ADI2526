@@ -3,84 +3,127 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/appStore'
 import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonButtons,
-  IonBackButton,
-  IonTitle,
-  IonContent,
-  IonImg,
-  IonAvatar,
-  IonIcon,
-  IonText,
-  IonChip,
-  IonSegment,
-  IonSegmentButton,
-  IonLabel,
-  IonList,
-  IonItem,
-  IonButton,
-  IonTextarea,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonCard,
-  IonCardContent
+  IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle,
+  IonContent, IonChip, IonSegment, IonSegmentButton, IonLabel, IonList,
+  IonItem, IonAvatar, IonIcon, IonText, IonTextarea, IonButton,
+  IonCard, IonCardContent, alertController
 } from '@ionic/vue'
 import {
-  timeOutline,
-  personCircleOutline,
-  calendarOutline,
-  send,
-  chatbubbleOutline
+  personCircleOutline, calendarOutline, chatbubbleOutline, send,
+  trashOutline, createOutline
 } from 'ionicons/icons'
-
-// Importamos el footer si lo quieres, aunque en detalles a veces sobra
-import SiteFooter from '@/components/SiteFooter.vue'
 
 const route = useRoute()
 const appStore = useAppStore()
 
 const receta = ref(null)
 const loading = ref(true)
-const selectedSegment = ref('detalles') // Controla qué pestaña se ve
-
-const comentarios = ref([])
+const selectedSegment = ref('detalles')
 const nuevoComentario = ref('')
 const enviando = ref(false)
 
+// 1. CAMBIO IMPORTANTE: Usamos computed para que la lista reaccione a cambios (ediciones/borrados)
+const comentarios = computed(() => appStore.comentariosDeReceta(route.params.id))
 const usuarioLogueado = computed(() => appStore.isAuthenticated)
 
-// --- LÓGICA DE CARGA (Igual que antes) ---
-async function cargarComentarios() {
-  try {
-    await appStore.getComentariosPorReceta(route.params.id)
-    comentarios.value = appStore.comentariosDeReceta(route.params.id)
-  } catch (err) {
-    console.error("Error cargando comentarios:", err)
-  }
+// --- FUNCIONES DE PERMISOS ---
+
+// Verificar si el comentario ha sido editado
+function haSidoEditado(comentario) {
+  return comentario.created !== comentario.updated
 }
 
-async function enviarComentario() {
-  if (!nuevoComentario.value.trim()) return
-  enviando.value = true
-  try {
-    await appStore.addComentario(route.params.id, nuevoComentario.value.trim())
-    nuevoComentario.value = ''
-    await cargarComentarios()
-  } catch (err) {
-    console.error("Error enviando comentario:", err)
-  } finally {
-    enviando.value = false
+// Permiso para BORRAR: Dueño del comentario O Dueño de la receta
+function puedeBorrar(comentario) {
+  if (!appStore.user) return false
+
+  const soyAutorComentario = comentario.user === appStore.user.id
+
+  // Verificamos si soy dueño de la receta (autors suele ser un array)
+  let soyDuenoReceta = false
+  if (receta.value?.autors) {
+    if (Array.isArray(receta.value.autors)) {
+      soyDuenoReceta = receta.value.autors.includes(appStore.user.id)
+    } else {
+      soyDuenoReceta = receta.value.autors === appStore.user.id
+    }
   }
+
+  return soyAutorComentario || soyDuenoReceta
 }
+
+// Permiso para EDITAR: Solo el autor del comentario
+function puedeEditar(comentario) {
+  if (!appStore.user) return false
+  return comentario.user === appStore.user.id
+}
+
+// --- MANEJADORES DE ACCIÓN ---
+
+// Alerta para editar
+async function manejarEdicion(comentario) {
+  const alert = await alertController.create({
+    header: 'Editar comentario',
+    inputs: [
+      {
+        name: 'contenido',
+        type: 'textarea',
+        placeholder: 'Escribe tu corrección...',
+        value: comentario.contenido
+      }
+    ],
+    buttons: [
+      { text: 'Cancelar', role: 'cancel' },
+      {
+        text: 'Guardar',
+        handler: async (data) => {
+          if (data.contenido && data.contenido.trim() !== '') {
+            try {
+              await appStore.updateComentario(comentario.id, data.contenido)
+            } catch (e) {
+              console.error("Error al editar:", e)
+            }
+          }
+        }
+      }
+    ]
+  })
+  await alert.present()
+}
+
+// Alerta para borrar
+async function manejarBorrado(comentarioId) {
+  const alert = await alertController.create({
+    header: 'Confirmar eliminación',
+    message: '¿Estás seguro? Esta acción no se puede deshacer.',
+    buttons: [
+      { text: 'Cancelar', role: 'cancel' },
+      {
+        text: 'Borrar',
+        role: 'destructive', // Pone el texto en rojo en iOS
+        handler: async () => {
+          try {
+            await appStore.deleteComentario(comentarioId)
+          } catch (e) {
+            console.error("Error al borrar:", e)
+          }
+        }
+      }
+    ]
+  })
+  await alert.present()
+}
+
+// --- LÓGICA DE DATOS (Autor y Envío) ---
 
 function obtenerNombreAutor(comentario) {
+  // Si soy yo
+  if (appStore.user && comentario.user === appStore.user.id) {
+    return appStore.user.name || 'Tú'
+  }
+  // Si es otro (expand)
   if (comentario.expand?.user) {
-    return comentario.expand.user.name ||
-           comentario.expand.user.username ||
-           'Usuario anónimo'
+    return comentario.expand.user.name || comentario.expand.user.username || 'Usuario anónimo'
   }
   return 'Usuario anónimo'
 }
@@ -91,6 +134,20 @@ function formatearFecha(fecha) {
   })
 }
 
+async function enviarComentario() {
+  if (!nuevoComentario.value.trim()) return
+  enviando.value = true
+  try {
+    await appStore.addComentario(route.params.id, nuevoComentario.value.trim())
+    nuevoComentario.value = ''
+  } catch (err) {
+    console.error("Error enviando comentario:", err)
+  } finally {
+    enviando.value = false
+  }
+}
+
+// --- ON MOUNTED ---
 onMounted(async () => {
   try {
     if (appStore.recetas.length === 0) await appStore.loadRecetas()
@@ -102,7 +159,6 @@ onMounted(async () => {
       receta.value = appStore.recetaActual
     }
 
-    // Resolver nombre del autor
     if (receta.value) {
       const autorExpand = Array.isArray(receta.value.expand?.autors)
         ? receta.value.expand.autors[0]
@@ -111,7 +167,8 @@ onMounted(async () => {
       receta.value.autorNombre = autorExpand?.name || 'Anónimo'
     }
 
-    await cargarComentarios()
+    // Cargamos comentarios (la variable 'comentarios' se actualiza sola gracias a computed)
+    await appStore.getComentariosPorReceta(route.params.id)
   } catch (error) {
     console.error("Error:", error)
   } finally {
@@ -189,15 +246,46 @@ onMounted(async () => {
               <ion-list lines="none">
                 <ion-item v-for="c in comentarios" :key="c.id" class="comment-item">
                   <ion-avatar slot="start" class="comment-avatar">
-                    <img :src="`https://ui-avatars.com/api/?name=${obtenerNombreAutor(c)}&background=random`" />
+                    <img :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(obtenerNombreAutor(c))}&background=random`" />
                   </ion-avatar>
-                  <ion-label class="ion-text-wrap">
-                    <h3>
-                      {{ obtenerNombreAutor(c) }}
-                      <span class="comment-date">{{ formatearFecha(c.created) }}</span>
-                    </h3>
+
+                  <ion-label class="ion-text-wrap comment-content">
+                    <div class="comment-header-row">
+                      <h3>
+                        {{ obtenerNombreAutor(c) }}
+                        <span class="comment-date">{{ formatearFecha(c.created) }}</span>
+                      </h3>
+                    </div>
+
                     <p>{{ c.contenido }}</p>
+
+                    <div v-if="haSidoEditado(c)" class="edited-label">
+                      (editado)
+                    </div>
                   </ion-label>
+
+                  <div slot="end" class="action-buttons">
+                    <ion-button
+                      fill="clear"
+                      size="small"
+                      color="medium"
+                      v-if="puedeEditar(c)"
+                      @click="manejarEdicion(c)"
+                    >
+                      <ion-icon slot="icon-only" :icon="createOutline"></ion-icon>
+                    </ion-button>
+
+                    <ion-button
+                      fill="clear"
+                      size="small"
+                      color="danger"
+                      v-if="puedeBorrar(c)"
+                      @click="manejarBorrado(c.id)"
+                    >
+                      <ion-icon slot="icon-only" :icon="trashOutline"></ion-icon>
+                    </ion-button>
+                  </div>
+
                 </ion-item>
               </ion-list>
 
@@ -316,18 +404,20 @@ onMounted(async () => {
 .prep-text {
   font-size: 1rem;
   line-height: 1.8;
-  white-space: pre-line; /* Respeta saltos de línea */
+  white-space: pre-line;
 }
 
 /* Comentarios */
 .comment-item {
   --padding-start: 0;
   margin-bottom: 10px;
+  --inner-padding-end: 0; /* Ajuste para botones */
 }
 
 .comment-avatar {
   width: 40px;
   height: 40px;
+  margin-top: 8px; /* Alinear visualmente */
 }
 
 .comment-date {
@@ -346,6 +436,21 @@ onMounted(async () => {
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-in-out;
+}
+
+/* ESTILOS NUEVOS PARA EDICIÓN Y BOTONES */
+.edited-label {
+  font-size: 0.7rem;
+  color: var(--ion-color-medium);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  margin-left: 5px;
 }
 
 @keyframes fadeIn {
