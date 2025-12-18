@@ -1,4 +1,4 @@
-import { pb } from '../config/pb.js';
+import { pb } from '../config/pb';
 
 
 const login = async (email: string, password: string) => {

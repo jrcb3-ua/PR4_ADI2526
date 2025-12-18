@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { pb } from '../backend/config/pb'
+import { toastController } from '@ionic/vue'
+import { wifi } from 'ionicons/icons'
 
-// Tipos mínimos para evitar never[]
+// Tipos mínimos
 interface User {
   id: string
   [key: string]: any
@@ -55,16 +57,59 @@ export const useAppStore = defineStore('appStore', {
   },
 
   actions: {
+    // --------------------  REALTIME (¡LO QUE FALTABA!)  --------------------
+    async subscribeToRealtime() {
+      // Evitamos duplicar suscripciones
+      this.unsubscribeFromRealtime();
+
+      console.log('📡 Conectando al canal de recetas...');
+
+      await pb.collection('recetas').subscribe('*', async (e) => {
+        console.log('⚡ Evento Realtime:', e.action);
+
+        if (e.action === 'create') {
+          // Traemos la receta completa con autores expandidos
+          const newReceta = await pb.collection('recetas').getOne(e.record.id, { expand: 'autors' });
+          this.recetas.unshift(newReceta as Receta);
+          this.presentToast('¡Nueva receta publicada!', 'success');
+        }
+        else if (e.action === 'update') {
+          const updatedReceta = await pb.collection('recetas').getOne(e.record.id, { expand: 'autors' });
+          const index = this.recetas.findIndex(r => r.id === e.record.id);
+          if (index !== -1) {
+             this.recetas[index] = updatedReceta as Receta;
+          }
+          this.presentToast('Una receta ha sido actualizada', 'warning');
+        }
+        else if (e.action === 'delete') {
+          this.recetas = this.recetas.filter(r => r.id !== e.record.id);
+          this.presentToast('Receta eliminada', 'danger');
+        }
+      });
+    },
+
+    unsubscribeFromRealtime() {
+      pb.collection('recetas').unsubscribe();
+      console.log('🔕 Desconectado del Realtime');
+    },
+
+    async presentToast(message: string, color: string) {
+      const toast = await toastController.create({
+        message: message,
+        duration: 3000,
+        color: color,
+        position: 'top',
+        icon: wifi
+      });
+      await toast.present();
+    },
+
     // --------------------  LOGIN  --------------------
     async login(email: string, password: string): Promise<void> {
       try {
         this.loading = true
         this.error = null
-
-        const authData = await pb
-          .collection('users')
-          .authWithPassword(email, password)
-
+        const authData = await pb.collection('users').authWithPassword(email, password)
         this.user = authData.record as User
       } catch (err) {
         console.error('Error login:', err)
@@ -77,6 +122,7 @@ export const useAppStore = defineStore('appStore', {
 
     // --------------------  LOGOUT  --------------------
     logout(): void {
+      this.unsubscribeFromRealtime(); // Nos desconectamos al salir
       pb.authStore.clear()
       this.user = null
     },
@@ -101,20 +147,17 @@ export const useAppStore = defineStore('appStore', {
       try {
         this.loading = true
         this.error = null
-
         if (!this.user) throw new Error('Usuario no autenticado')
 
+        // 1. Borrar recetas del usuario
         const userRecetas = this.recetasDelUsuario
-
         for (const receta of userRecetas) {
           await pb.collection('recetas').delete(receta.id)
         }
-
+        // 2. Borrar usuario
         await pb.collection('users').delete(this.user.id)
 
-        pb.authStore.clear()
-        this.user = null
-        this.recetas = this.recetas.filter(r => !userRecetas.includes(r))
+        this.logout();
       } catch (err) {
         console.error('Error eliminando cuenta:', err)
         this.error = 'No se pudo eliminar la cuenta'
@@ -129,13 +172,9 @@ export const useAppStore = defineStore('appStore', {
       try {
         this.loading = true
         this.error = null
-
         if (!this.user) throw new Error('Usuario no autenticado')
 
-        const updatedUser = await pb
-          .collection('users')
-          .update(this.user.id, profileData)
-
+        const updatedUser = await pb.collection('users').update(this.user.id, profileData)
         this.user = { ...this.user, ...updatedUser }
         return updatedUser as User
       } catch (err) {
@@ -152,13 +191,11 @@ export const useAppStore = defineStore('appStore', {
       try {
         this.loading = true
         this.error = null
-
-        const recetas = await pb.collection('recetas').getFullList({
+        const recetas = await pb.collection('recetas').getList(1, 50, {
           sort: '-created',
           expand: 'autors'
         })
-
-        this.recetas = recetas as Receta[]
+        this.recetas = recetas.items as Receta[]
       } catch (err) {
         console.error('Error cargando recetas:', err)
         this.error = 'Error al cargar recetas'
@@ -171,9 +208,7 @@ export const useAppStore = defineStore('appStore', {
     async loadReceta(id: string): Promise<void> {
       try {
         this.loading = true
-        this.recetaActual = await pb
-          .collection('recetas')
-          .getOne(id, { expand: 'autors' }) as Receta
+        this.recetaActual = await pb.collection('recetas').getOne(id, { expand: 'autors' }) as Receta
       } catch (err) {
         console.error('Error al cargar receta:', err)
       } finally {
@@ -181,61 +216,51 @@ export const useAppStore = defineStore('appStore', {
       }
     },
 
-    // --------------------  CARGAR TODOS LOS COMENTARIOS  --------------------
+    // --------------------  COMENTARIOS (Mantenemos tu lógica)  --------------------
     async getFullComentarios(): Promise<Comentario[]> {
       try {
-        this.loading = true
-        this.error = null
-
+        this.loading = true;
+        this.error = null;
         const comentarios = await pb.collection('comentarios').getFullList({
           sort: '-created',
           expand: 'usuario,receta'
-        })
-
-        this.comentarios = comentarios as Comentario[]
-        return this.comentarios
+        });
+        this.comentarios = comentarios as Comentario[];
+        return this.comentarios;
       } catch (err) {
-        console.error('Error cargando comentarios:', err)
-        this.error = 'Error al cargar comentarios'
-        throw err
+        console.error('Error cargando comentarios:', err);
+        throw err;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
-    // --------------------  COMENTARIOS POR RECETA  --------------------
     async getComentariosPorReceta(recetaId: string): Promise<Comentario[]> {
       try {
         this.loading = true
         this.error = null
-
         const comentarios = await pb.collection('comentarios').getFullList({
           filter: `receta = "${recetaId}"`,
           sort: '-created',
           expand: 'usuario'
         })
-
+        // Actualizamos el estado local mezclando
         this.comentarios = [
           ...this.comentarios.filter(c => c.receta !== recetaId),
           ...(comentarios as Comentario[])
         ]
-
         return comentarios as Comentario[]
       } catch (err) {
         console.error('Error cargando comentarios de receta:', err)
-        this.error = 'Error al cargar comentarios'
         throw err
       } finally {
         this.loading = false
       }
     },
 
-    // --------------------  AGREGAR COMENTARIO  --------------------
     async addComentario(recetaId: string, contenido: string): Promise<Comentario> {
       try {
         this.loading = true
-        this.error = null
-
         if (!this.user) throw new Error('Usuario no autenticado')
 
         const nuevo = await pb.collection('comentarios').create({
@@ -244,59 +269,42 @@ export const useAppStore = defineStore('appStore', {
           user: this.user.id
         })
 
-        const comentarioExpandido = await pb
-          .collection('comentarios')
-          .getOne(nuevo.id, { expand: 'usuario' })
-
+        const comentarioExpandido = await pb.collection('comentarios').getOne(nuevo.id, { expand: 'usuario' })
         this.comentarios.unshift(comentarioExpandido as Comentario)
         return comentarioExpandido as Comentario
       } catch (err) {
         console.error('Error agregando comentario:', err)
-        this.error = 'No se pudo agregar el comentario'
         throw err
       } finally {
         this.loading = false
       }
     },
 
-    // --------------------  ACTUALIZAR COMENTARIO  --------------------
     async updateComentario(id: string, contenido: string): Promise<void> {
       const updated = await pb.collection('comentarios').update(id, { contenido })
       const index = this.comentarios.findIndex(c => c.id === id)
       if (index !== -1) {
-        this.comentarios[index] = {
-          ...this.comentarios[index],
-          ...(updated as Comentario)
-        }
+        this.comentarios[index] = { ...this.comentarios[index], ...(updated as Comentario) }
       }
     },
 
-    // --------------------  ELIMINAR COMENTARIO  --------------------
     async deleteComentario(id: string): Promise<void> {
-      try {
-        await pb.collection('comentarios').delete(id)
-        this.comentarios = this.comentarios.filter(c => c.id !== id)
-      } catch (err) {
-        console.error('Error eliminando comentario:', err)
-        this.error = 'No se pudo eliminar el comentario'
-        throw err
-      }
+      await pb.collection('comentarios').delete(id)
+      this.comentarios = this.comentarios.filter(c => c.id !== id)
     },
 
-    // --------------------  CREAR RECETA  --------------------
+    // --------------------  CRUD RECETAS (Mantenemos tu lógica)  --------------------
     async addReceta(data: Record<string, any>): Promise<void> {
       try {
         this.loading = true
-        this.error = null
-
         if (!this.user) throw new Error('Usuario no autenticado')
 
-        const nueva = await pb.collection('recetas').create({
+        // No añadimos manualmente a this.recetas porque el Realtime
+        // se encargará de recibir el evento 'create' y añadirlo
+        await pb.collection('recetas').create({
           ...data,
           autors: [this.user.id]
         })
-
-        this.recetas.unshift(nueva as Receta)
       } catch (err) {
         console.error('Error al crear receta:', err)
         this.error = 'No se pudo crear la receta'
@@ -305,22 +313,14 @@ export const useAppStore = defineStore('appStore', {
       }
     },
 
-    // --------------------  ACTUALIZAR RECETA  --------------------
     async updateReceta(id: string, fields: Record<string, any>): Promise<void> {
-      const updated = await pb.collection('recetas').update(id, fields)
-      const index = this.recetas.findIndex(r => r.id === id)
-      if (index !== -1) this.recetas[index] = updated as Receta
+       // El Realtime se encargará de actualizar el estado local
+       await pb.collection('recetas').update(id, fields)
     },
 
-    // --------------------  BORRAR RECETA  --------------------
     async deleteReceta(id: string): Promise<void> {
-      try {
-        await pb.collection('recetas').delete(id)
-        this.recetas = this.recetas.filter(r => r.id !== id)
-      } catch (err) {
-        console.error('Error borrando receta:', err)
-        this.error = 'No se pudo borrar la receta'
-      }
+       // El Realtime se encargará de eliminarlo del estado local
+       await pb.collection('recetas').delete(id)
     }
   }
 })
