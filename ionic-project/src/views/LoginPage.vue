@@ -58,6 +58,7 @@ async function handleLogin() {
 
 <template>
   <ion-page>
+   <SiteHeader />
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-title>Login</ion-title>
@@ -92,10 +93,19 @@ async function handleLogin() {
           Iniciar Sesión
         </ion-button>
       </form>
+      <div class="ion-text-center ion-margin-top">
+              <ion-button
+                fill="clear"
+                router-link="/registro"
+                size="small"
+              >
+                ¿No tienes cuenta? Regístrate aquí
+              </ion-button>
+       </div>
     </ion-content>
+    <SiteFooter />
   </ion-page>
 </template>
-
 
 
 <style scoped>

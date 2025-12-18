@@ -20,6 +20,9 @@ import {
 } from '@ionic/vue'
 import { personAddOutline, personOutline, mailOutline, lockClosedOutline } from 'ionicons/icons'
 
+import SiteHeader from '@/components/SiteHeader.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
+
 const router = useRouter()
 const store = useAppStore()
 
@@ -175,6 +178,7 @@ onMounted(() => {
 
       </div>
     </ion-content>
+    <SiteFooter />
   </ion-page>
 </template>
 

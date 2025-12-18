@@ -20,7 +20,6 @@ import { useAppStore } from '@/stores/appStore'
 import SiteHeader from '@/components/SiteHeader.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 
-// IMÁGENES (¡Siempre importar arriba!)
 import img1 from '@/assets/img/recipe1.jpg';
 import img2 from '@/assets/img/recipe2.jpg';
 import img3 from '@/assets/img/recipe3.jpg';
